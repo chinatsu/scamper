@@ -1,5 +1,5 @@
 [package]
-name = "agb_template"
+name = "scamper"
 version = "0.1.0"
 authors = [""]
 edition = "2021"
@@ -7,7 +7,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-agb = "0.20.5"
+agb = { git = "https://github.com/agbrs/agb.git" }
 
 [profile.dev]
 opt-level = 3

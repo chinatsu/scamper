@@ -1,23 +1,65 @@
-// Games made using `agb` are no_std which means you don't have access to the standard
-// rust library. This is because the game boy advance doesn't really have an operating
-// system, so most of the content of the standard library doesn't apply.
-//
-// Provided you haven't disabled it, agb does provide an allocator, so it is possible
-// to use both the `core` and the `alloc` built in crates.
 #![no_std]
-// `agb` defines its own `main` function, so you must declare your game's main function
-// using the #[agb::entry] proc macro. Failing to do so will cause failure in linking
-// which won't be a particularly clear error message.
 #![no_main]
-// This is required to allow writing tests
 #![cfg_attr(test, feature(custom_test_frameworks))]
 #![cfg_attr(test, reexport_test_harness_main = "test_main")]
 #![cfg_attr(test, test_runner(agb::test_runner::test_runner))]
 
-// The main function must take 1 arguments and never return. The agb::entry decorator
-// ensures that everything is in order. `agb` will call this after setting up the stack
-// and interrupt handlers correctly. It will also handle creating the `Gba` struct for you.
+use agb::{
+    display::{
+        tiled::{RegularBackgroundSize, TileFormat, TiledMap},
+        Font, Priority,
+    },
+    include_font,
+};
+mod scenes;
+
+//static GRAPHICS: &Graphics = include_aseprite!("resources/gfx/sprites.aseprite");
+static FONT: Font = include_font!("resources/font/font.ttf", 28);
+
 #[agb::entry]
 fn main(mut gba: agb::Gba) -> ! {
-    agb::no_game(gba);
+    let (gfx, mut vram) = gba.display.video.tiled0();
+    let mut input = agb::input::ButtonController::new();
+    let vblank = agb::interrupt::VBlank::get();
+    let object = gba.display.object.get_managed();
+
+    vram.set_background_palette_raw(&[
+        0x0000, 0x0ff0, 0x00ff, 0xf00f, 0xf0f0, 0x0f0f, 0xffff, 0x5555, 0x0000, 0x0000, 0x0000,
+        0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
+    ]);
+
+    let mut bg = gfx.background(
+        Priority::P0,
+        RegularBackgroundSize::Background32x32,
+        TileFormat::FourBpp,
+    );
+
+    let mut manager = scenes::SceneManager::new();
+
+    loop {
+        let background_tile = vram.new_dynamic_tile().fill_with(6);
+        for y in 0..20u16 {
+            for x in 0..30u16 {
+                bg.set_tile(
+                    &mut vram,
+                    (x, y),
+                    &background_tile.tile_set(),
+                    background_tile.tile_setting(),
+                );
+            }
+        }
+        let mut renderer = FONT.render_text((1u16, 3u16));
+        let writer = renderer.writer(1, 6, &mut bg, &mut vram);
+        manager.process(&input, &object, writer);
+
+        vblank.wait_for_vblank();
+        bg.commit(&mut vram);
+        bg.set_visible(true);
+        object.commit();
+        input.update();
+
+        renderer.clear(&mut vram);
+        bg.clear(&mut vram);
+        vram.remove_dynamic_tile(background_tile);
+    }
 }
