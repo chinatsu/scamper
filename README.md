@@ -4,6 +4,16 @@
 
 ### Prerequisites
 
+I am currently using fonts not licensed for distribution, so you will need to provide your own.
+Create the expected directories and copy a desired ttf-font in.
+
+```
+mkdir -p resources/font
+cp /my/desired/font.ttf resources/font/font.ttf
+```
+
+---
+
 You will need the following installed in order to build and run this project:
 
 * A recent version of `rustup`. See the [rust website](https://www.rust-lang.org/tools/install) for instructions for your operating system
