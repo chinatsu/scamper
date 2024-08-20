@@ -17,7 +17,7 @@ impl OptionsScene {
         }
     }
 
-    fn render(&mut self, mut writer: TextWriter) {
+    fn render_inner(&mut self, mut writer: TextWriter) {
         writeln!(&mut writer, "Hello I am").unwrap();
         writeln!(&mut writer, "Options!").unwrap();
         writer.commit()
@@ -33,13 +33,14 @@ impl Scene for OptionsScene {
 
     fn process(
         &mut self,
-        controller: &ButtonController,
-        _object: &OamManaged,
-        writer: TextWriter,
+        controller: &ButtonController
     ) -> Option<Scenes> {
         self.handle_input(controller);
-        self.render(writer);
 
         Some(self.desired_scene)
+    }
+
+    fn render(&mut self, _object: &OamManaged, _ball: &mut agb::display::object::Object, writer: TextWriter) {
+        self.render_inner(writer);
     }
 }

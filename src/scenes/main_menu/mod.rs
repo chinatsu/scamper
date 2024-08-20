@@ -23,9 +23,9 @@ impl MainMenuScene {
             match self.menu_selection {
                 Menu::Options => {
                     self.desired_scene = Scenes::OptionsScene;
-                }
-                _ => {
-                    self.desired_scene = Scenes::MainMenuScene;
+                },
+                Menu::Start => {
+                    self.desired_scene = Scenes::GameScene;
                 }
             }
         }
@@ -42,7 +42,7 @@ impl MainMenuScene {
         }
     }
 
-    fn render(&self, _object: &OamManaged, mut writer: TextWriter) {
+    fn render_inner(&self, _object: &OamManaged, mut writer: TextWriter) {
         match self.menu_selection {
             Menu::Start => writeln!(&mut writer, "Start").unwrap(),
             Menu::Options => writeln!(&mut writer, "Options").unwrap(),
@@ -62,12 +62,13 @@ impl Scene for MainMenuScene {
     fn process(
         &mut self,
         controller: &ButtonController,
-        object: &OamManaged,
-        writer: TextWriter,
     ) -> Option<Scenes> {
         self.handle_input(&controller);
-        self.render(object, writer);
 
         Some(self.desired_scene)
+    }
+
+    fn render(&mut self, object: &OamManaged, _ball: &mut agb::display::object::Object, writer: TextWriter) {
+        self.render_inner(object, writer);
     }
 }
